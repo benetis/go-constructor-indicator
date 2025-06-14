@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>benetis.go-constructor-indicator</id>
+    <name>Go Constructor Indicator</name>
+    <version>0.1-SNAPSHOT</version>
+    <vendor>benetis</vendor>
+
+    <description>
+        Displays an icon next to struct literals in Go code when a corresponding New* constructor function exists.
+        Ignores empty literals. Clicking on the icon navigates to the New* function.
+    </description>
+
+    <depends>org.jetbrains.plugins.go</depends>
+    <depends>com.intellij.modules.go</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.lineMarkerProvider
+                language="go"
+                implementationClass="benetis.me.StructLiteralLineMarkerProvider"/>
+    </extensions>
+</idea-plugin>
