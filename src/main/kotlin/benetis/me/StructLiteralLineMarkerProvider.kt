@@ -18,23 +18,38 @@ class StructLiteralLineMarkerProvider : LineMarkerProvider {
 
         if (!composite.isStructLiteral || composite.literalValue?.elementList.isNullOrEmpty()) return null
 
-        val structName = typeRef.identifier.text ?: return null
-        val constructorName = "New$structName"
+        val structIdentifier = typeRef.identifier
+        val structName = structIdentifier.text ?: return null
 
-        if (typeRef.isInsideConstructor(constructorName)) return null
+        val qualifier = typeRef.qualifier?.reference?.resolve() as? GoImportSpec
+        val packageName = qualifier?.alias ?: qualifier?.path?.removeSurrounding("\"")
+        val expectedConstructorName = "New$structName"
 
-        val target = GoFunctionIndex
-            .find(constructorName, element.project, GlobalSearchScope.projectScope(element.project), null)
-            .filterIsInstance<GoFunctionDeclaration>() // Top level only
-            .firstOrNull() ?: return null
+        if (typeRef.isInsideConstructor(expectedConstructorName)) return null
+
+        val functions = GoFunctionIndex
+            .find(expectedConstructorName, element.project, GlobalSearchScope.projectScope(element.project), null)
+            .filterIsInstance<GoFunctionDeclaration>()
+
+        val structPackage = (typeRef.reference.resolve() as? GoTypeSpec)?.containingFile?.packageName
+
+        val target = functions.firstOrNull { function ->
+            val functionPackage = function.containingFile.packageName
+            functionPackage == packageName || (packageName == null && functionPackage == structPackage)
+        } ?: return null
 
         val navHandler = GutterIconNavigationHandler<PsiElement> { _, _ -> target.navigate(true) }
 
+        val tooltip = if (packageName != null)
+            "Use $packageName.$expectedConstructorName instead"
+        else
+            "Use $expectedConstructorName instead"
+
         return LineMarkerInfo(
-            typeRef.identifier,
+            structIdentifier,
             typeRef.textRange,
             Icons.CONSTRUCTOR_GUTTER,
-            { "Use $constructorName instead" },
+            { tooltip },
             navHandler,
             GutterIconRenderer.Alignment.LEFT
         )

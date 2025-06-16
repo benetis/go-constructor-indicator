@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testgo/internal"
 	"testgo/internal/currency"
+	othermoney "testgo/othermoney"
 )
 
 func main() {
@@ -33,6 +34,15 @@ func main() {
 
 	testas := internal.Money{}
 	fmt.Println(testas)
+
+	otherEuro := othermoney.Money{
+		Cents:    100,
+		Currency: currency.EUR,
+	}
+	otherEuros := othermoney.NewMoney(200, currency.EUR)
+
+	fmt.Println(otherEuro)
+	fmt.Println(otherEuros)
 }
 
 type MyType struct {
